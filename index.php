@@ -1,7 +1,7 @@
 <?php
-$token = "304919652:AAFxtSBqEOXF-mcYWN50efdNwofhRDzoKjQ";
+$token = "botkey";
 $api = "bot$token";
-$apikey = "22168c8388454ae0a2120d687870091e";
+$apikey = "apikey";
 
 /** 
  * HttpRequest - A simple PHP class using cURL for Ajax-like HTTP requests
