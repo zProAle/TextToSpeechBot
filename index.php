@@ -1,5 +1,5 @@
 <?php
-$token = "botkey";
+$token = "KEY";
 $api = "bot$token";
 $apikey = "apikey";
 
