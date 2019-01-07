@@ -1,8 +1,12 @@
 <?php
-$token = "KEY";
+$token = "token";
 $api = "bot$token";
-$apikey = "apikey";
-
+$strings = array(
+    'apikey',
+    'apikey',
+    
+);
+$key = array_rand($strings);
 /** 
  * HttpRequest - A simple PHP class using cURL for Ajax-like HTTP requests
  * by Hay Kranen <hay at bykr dot org>
@@ -54,12 +58,10 @@ class HttpRequest {
     private $method, $url, $data = false;
     private $error, $hasError = false, $response, $status;
     private $requestInfo, $curlError, $headers = array();
-
     // Default arguments
     private $args = array(
         "followRedirect" => true,
     );
-
     function __construct($method, $url, $data = false, $args = false) {
         $method = strtolower($method);
         if ($method == "post" || $method == "get") {
@@ -68,94 +70,74 @@ class HttpRequest {
             $this->setError("Invalid method: $method");
             return;
         }
-
         $this->url  = $url;
         $this->data = $data;
-
         if (is_array($args)) {
             // Add arguments to the already available default arguments
             foreach($args as $key => $value) {
                 $this->args[$key] = $value;
             }
         }
-
         $this->doRequest();
     }
-
     function hasError() {
         return $this->hasError;
     }
-
     private function setError($msg) {
         $this->error = $msg;
         $this->hasError = true;
     }
-
     function getError() {
         return $this->error;
     }
-
     function getStatus() {
         return $this->status;
     }
-
     function getResponse() {
         return $this->response;
     }
-
     function getRequestInfo() {
         return $this->requestInfo;
     }
-
     function toString() {
         var_dump($this);
     }
-
     private function doRequest() {
         $this->doCurl();
-
         if ($this->status != "200") {
             $this->setError("Response error: " . $this->status . " (" . $this->curlError . ")");
         }
     }
-
     private function doCurl() {
         $c = curl_init();
-
         // Maybe we want to rewrite the url for data arguments in GET requests
         if ($this->method == "get" && $this->data) {
             $this->url .= "?" . http_build_query($this->data);
         }
-
         // Default values
         curl_setopt($c, CURLOPT_URL, $this->url);
         curl_setopt($c, CURLOPT_RETURNTRANSFER ,true);
         curl_setopt($c, CURLOPT_FOLLOWLOCATION, $this->args['followRedirect']);
         curl_setopt($c, CURLOPT_HTTPHEADER, array('Expect:'));
-
 		//register a callback function which will process the headers
 		//this assumes your code is into a class method, and uses $this->readHeader as the callback //function
 		curl_setopt($c, CURLOPT_HEADERFUNCTION, array(&$this,'readHeader'));
-
         // Authentication
         if (isset($this->args['username']) && isset($this->args['password'])) {
             curl_setopt($c, CURLOPT_USERPWD, $this->args['username'] . ':' . $this->args['password']);
         }
-
         // POST
         if($this->method == "post") {
             curl_setopt($c, CURLOPT_POST, true);
             // Always escape HTTP data dammit!
             curl_setopt($c, CURLOPT_POSTFIELDS, http_build_query($this->data));
         }
-
         // Many servers require this to output decent HTML
         if (empty($this->args['useragent'])) {
             curl_setopt($c, CURLOPT_USERAGENT, "Mozilla/5.0");
         } else {
             curl_setopt($c, CURLOPT_USERAGENT, $this->args['useragent']);
         }
-
         $this->response    = curl_exec($c);
         $this->status      = curl_getinfo($c, CURLINFO_HTTP_CODE);
         $this->curlError   = curl_errno($c) . ": ". curl_error($c);
@@ -163,7 +145,6 @@ class HttpRequest {
 		$this->headers     = array_merge($this->requestInfo, $this->headers);
         curl_close($c);
     }
-
 	private function readHeader($ch, $header) {
         $key = trim(substr($header, 0, strpos($header, ":")));
         $val = trim(substr($header, strpos($header, ":") + 1));
@@ -181,9 +162,6 @@ class HttpRequest {
         }
 	}
 }
-
-
-
 $content = file_get_contents('php://input');
 $update = json_decode($content, true);
 $chatID = $update["message"]["chat"]["id"];
@@ -191,7 +169,6 @@ $userID = $update["message"]["from"]["id"];
 $msg = $update["message"]["text"];
 $username = $update["message"]["from"]["username"];
 $nome = $update["message"]["from"]["first_name"];
-
 // LASCIARE I CREDITI
 if($msg == "/start") {
 $text = "Ciao $nome!\n Fai /tts [PAROLA]  \n Powered by @zProAle";
@@ -201,7 +178,6 @@ $args = array(
 );
 new HttpRequest("get", "https://api.telegram.org/$api/sendmessage", $args);
 }
-
 if(strpos($msg, "/tts")===0)
 {
 $e = explode(" ", $msg, 2);
@@ -211,7 +187,7 @@ $didascalia = str_replace("%20", ' ', $text);
 $args = array(
 'chat_id' => $chatID,
 'title' => "$text",
-'audio' => "http://api.voicerss.org/?key=$apikey&hl=it-it&src=$text",
+'audio' => "http://api.voicerss.org/?key=$strings[$key]&hl=it-it&src=$text",
 );
 new HttpRequest("get", "https://api.telegram.org/$api/sendAudio", $args);
 }
